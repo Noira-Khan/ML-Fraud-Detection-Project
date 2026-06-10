@@ -28,19 +28,19 @@ The project covers:
 
 ## Architecture
 
-![Architecture](architecture.png)
+![Architecture](assets/architecture.png)
 
 ## Home Screen
 
-![Home](UI_Home.png)
+![Home](assets/UI_Home.png)
 
 ## Prediction Result - Safe Transaction
 
-![Safe Result](fraud_Prediction_Safe.png)
+![Safe Result](assets/fraud_Prediction_Safe.png)
 
 ## Prediction Result - Fraud Transaction
 
-![Fraud Result](Fraud_Prediction_Not_Safe.png)
+![Fraud Result](assets/Fraud_Prediction_Not_Safe.png)
 
 ----
 
