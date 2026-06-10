@@ -1,0 +1,34 @@
+	
+    
+    The Problem: Credit card fraud costs the company millions (direct financial loss)
+    and ruins customer trust.
+
+	The Stakeholder Requirement: Build a system that catches fraudulent transactions 
+    in real-time (to save money/increase ROI) BUT it must not aggressively block normal customers.
+    If an innocent user's card is declined at a restaurant because our AI falsely flagged it,
+    that UX cost leads to customer churn.
+
+    The Solution: Build a predictive Machine Learning model that evaluates a transaction 
+    at the moment of swipe and flags it as safe or suspicious.
+
+    This is a Binary Classification problem.
+	The target Variable (Y) is the Class column in the dataset.
+	    Y=1 (The transaction is Fraudulent).
+        Y=0 (The transaction is Legitimate).
+
+    Success Metrics (KPIs)
+	Why Accuracy is a Lie: In fraud detection, 99.8% of transactions are legitimate. 
+    If I build a "dumb" model that simply predicts 0 (Legitimate) every single time, 
+    my model will be 99.8% accurate, but it will catch exactly zero fraud.
+	My Accurate KPIs:
+		Recall (Sensitivity): Out of all the actual fraud that occurred, 
+        what percentage did I catch? (Crucial for stopping financial loss).
+
+		Precision: Out of all the transactions I flagged as fraud,
+        how many were actually fraud? (Crucial for not annoying legitimate customers).
+
+        F1 Score : Mean of Precision and Recall
+
+
+        AUPRC (Area Under the Precision-Recall Curve): This is the ultimate metric that I will use
+        to grade AI model.

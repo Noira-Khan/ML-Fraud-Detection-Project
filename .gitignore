@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.Python
+env/
+venv/
+.venv/
+
+# VS Code
+.vscode/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+CreditCard.csv
+
+
+
+CreditCard.csv
+*.csv
+*.pkl
+*.npy
+__pycache__/
+.vscode/

@@ -1,0 +1,8 @@
+#runtime dependencies
+python-dateutil>=2.8
+numpy
+pandas
+tzdata
+#development dependencies
+pytest
+

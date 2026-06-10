@@ -1,0 +1,32 @@
+      CREDIT CARD FRAUD DETECTION - EDA     
+--- 1. DATA SHAPE & CLEANLINESS---
+Total Observations (Rows): 284807
+Total Features (Columns): 31
+Missing Values Count: 0
+
+--- 2. CLASS DISTRIBUTION ANALYSIS ---
+Legitimate Transactions (Class 0): 284315 (99.8273%)
+Fraudulent Transactions (Class 1): 492 (0.1727%)
+
+--- 3. DESCRIPTIVE STATISTICS BY STRATA (CLASS) ---
+          count        mean         std  min   25%    50%     75%       max
+Class                                                                      
+0      284315.0   88.291022  250.105092  0.0  5.65  22.00   77.05  25691.16
+1         492.0  122.211321  256.683288  0.0  1.00   9.25  105.89   2125.87
+
+--- 4. TOP LINEAR CORRELATIONS WITH TARGET (CLASS) ---
+Strongest Negative Correlations with Fraud:
+V17   -0.326481
+V14   -0.302544
+V12   -0.260593
+V10   -0.216883
+V16   -0.196539
+
+Strongest Positive Correlations with Fraud:
+V19      0.034783
+V21      0.040413
+V2       0.091289
+V4       0.133447
+V11      0.154876
+Class    1.000000
+
