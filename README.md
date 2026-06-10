@@ -24,24 +24,26 @@ The project covers:
 - Fraud Prediction
 
 ---
+# Credit Card Fraud Detection
 
 ## Architecture
 
-![Architecture](assets/architecture.png)
+![Architecture](architecture.png)
 
----
+## Home Screen
 
-## Application Screenshots
+![Home](UI_Home.png)
 
-### Home Screen
+## Prediction Result - Safe Transaction
 
-![Home](assets/ui_home.png)
+![Safe Result](fraud_Prediction_Safe.png)
 
-### Prediction Result
+## Prediction Result - Fraud Transaction
 
-![Result](assets/prediction_result.png)
+![Fraud Result](Fraud_Prediction_Not_Safe.png)
 
----
+----
+
 
 ## Technology Stack
 
