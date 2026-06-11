@@ -92,12 +92,11 @@ ML-Fraud-Detection-Project/
 ## Model Performance
 
 | Metric | Score |
-|----------|----------|
-| Accuracy | XX% |
-| Precision | XX% |
-| Recall | XX% |
-| F1 Score | XX% |
-| ROC-AUC | XX% |
+|---------|---------|
+| Accuracy | 99.98% |
+| Precision (Fraud) | 93% |
+| Recall (Fraud) | 82% |
+| F1 Score (Fraud) | 87% |
 
 ---
 
