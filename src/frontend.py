@@ -1,212 +1,289 @@
-import pandas as pd
-import requests
 import streamlit as st
+import pandas as pd
+import numpy as np
+import joblib
+from pathlib import Path
 
-
-API_URL = "http://localhost:8000/predict"
-EXPECTED_FEATURES = 30
+# =====================================================
+# CONFIG
+# =====================================================
 
 st.set_page_config(
-    page_title="Fraud Detective Portal",
+    page_title="FraudShield AI",
     page_icon="🛡️",
-    layout="wide",
+    layout="wide"
 )
 
-st.title("🛡️ Real-Time Fraud Detection Portal")
-st.markdown(
-    "Upload a transaction file or enter features manually to detect anomalies."
-)
+# =====================================================
+# LOAD MODEL
+# =====================================================
+
+MODEL_PATH = Path(__file__).parent.parent / "best_xgb_model.pkl"
+
+model = joblib.load(MODEL_PATH)
+
+# =====================================================
+# SIDEBAR
+# =====================================================
 
 with st.sidebar:
-    st.title("Navigation")
+
+    st.title("🛡️ FraudShield AI")
+
     page = st.radio(
-        "Select Section",
+        "Navigation",
         [
-            "Overview",
             "Fraud Detection",
+            "Overview",
             "Model Metrics",
             "Architecture",
-            "Future Roadmap",
-        ],
+            "Future Roadmap"
+        ]
     )
 
-if page == "Architecture":
-    st.header("Solution Architecture")
-    st.image("assets/architecture.png")
+# =====================================================
+# OVERVIEW
+# =====================================================
 
-elif page == "Model Metrics":
-    st.header("Model Metrics")
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Accuracy", "99.2%")
-    col2.metric("Precision", "95%")
-    col3.metric("Recall", "92%")
-    col4.metric("ROC-AUC", "98%")
+if page == "Overview":
 
-elif page == "Future Roadmap":
-    st.markdown(
-        """
-        ## Product Roadmap
+    st.title("🛡️ FraudShield AI")
 
-        **Phase 1**
-        - Fraud prediction
+    st.markdown("""
+    ## AI-Powered Fraud Detection Platform
 
-        **Phase 2**
-        - Analyst dashboard
+    ### Business Problem
 
-        **Phase 3**
-        - Real-time streaming
+    Credit card fraud causes billions in losses annually.
 
-        **Phase 4**
-        - LLM-powered fraud explanations
+    Traditional rule-based systems generate excessive
+    false positives and increase investigation costs.
 
-        **Phase 5**
-        - AI Fraud Copilot
-        """
-    )
+    ### Solution
 
-else:
+    FraudShield AI uses machine learning to identify
+    suspicious transactions in real time.
+
+    ### Business Impact
+
+    ✅ Reduce Fraud Losses
+
+    ✅ Improve Customer Trust
+
+    ✅ Lower False Positives
+
+    ✅ Faster Fraud Investigation
+    """)
+
+# =====================================================
+# FRAUD DETECTION
+# =====================================================
+
+elif page == "Fraud Detection":
+
+    st.title("🔍 Fraud Detection")
+
     tab1, tab2 = st.tabs(
-        ["📁 Batch Processing (CSV/Excel)", "✍️ Manual Entry"]
+        [
+            "📁 Upload CSV",
+            "⚡ Quick Transaction Check"
+        ]
     )
+
+    # ==========================================
+    # CSV
+    # ==========================================
 
     with tab1:
-        st.header("Upload Transaction Data")
-        st.info(
-            "Upload a file containing 30 feature columns "
-            "(Time, V1-V28, and Amount)."
-        )
+
+        st.subheader("Batch Fraud Analysis")
 
         uploaded_file = st.file_uploader(
-            "Choose a file", type=["csv", "xlsx"]
+            "Upload CSV",
+            type=["csv"]
         )
 
-        if uploaded_file is not None:
-            try:
-                if uploaded_file.name.lower().endswith(".csv"):
-                    df = pd.read_csv(uploaded_file)
-                else:
-                    df = pd.read_excel(uploaded_file)
+        if uploaded_file:
 
-                st.write("### Data Preview")
-                st.dataframe(df.head())
+            df = pd.read_csv(uploaded_file)
 
-                if st.button("Scan First Row for Fraud"):
-                    features = df.iloc[0].astype(float).tolist()
+            st.dataframe(df.head())
 
-                    if len(features) != EXPECTED_FEATURES:
-                        st.error(
-                            f"Expected {EXPECTED_FEATURES} columns, but found "
-                            f"{len(features)}. Remove non-feature columns such as "
-                            "'Class' before uploading."
-                        )
-                    else:
-                        with st.spinner("Analyzing transaction..."):
-                            response = requests.post(
-                                API_URL,
-                                json={"features": features},
-                                timeout=30,
-                            )
-                            response.raise_for_status()
-                            result = response.json()
+            if st.button("Analyze First Transaction"):
 
-                        st.divider()
-                        result_col1, result_col2 = st.columns(2)
-                        probability = float(result.get("fraud_probability", 0))
+                row = df.iloc[0].values.reshape(1, -1)
 
-                        with result_col1:
-                            st.metric(
-                                "Fraud Probability",
-                                f"{probability * 100:.2f}%",
-                            )
+                probability = model.predict_proba(row)[0][1]
 
-                        with result_col2:
-                            if result.get("is_fraud", False):
-                                st.error(
-                                    "🚨 HIGH RISK: Fraudulent transaction detected!"
-                                )
-                            else:
-                                st.success(
-                                    "✅ LOW RISK: Transaction appears legitimate."
-                                )
-
-                        st.write("### Key Factors Driving This Prediction")
-                        for reason in result.get("top_drivers", []):
-                            st.write(
-                                f"- **{reason.get('impact', 'Unknown')}** "
-                                f"(Feature: `{reason.get('feature', 'Unknown')}`)"
-                            )
-
-            except (ValueError, TypeError):
-                st.error("The uploaded feature values must all be numeric.")
-            except requests.exceptions.ConnectionError:
-                st.error(
-                    "Could not connect to the API. Make sure FastAPI is running "
-                    "at http://localhost:8000."
+                st.metric(
+                    "Fraud Probability",
+                    f"{probability * 100:.2f}%"
                 )
-            except requests.exceptions.RequestException as error:
-                st.error(f"The prediction request failed: {error}")
-            except Exception as error:
-                st.error(f"Could not process the uploaded file: {error}")
 
-    with tab2:
-        st.header("Manual Feature Input")
-        st.write("Paste a comma-separated list of 30 features below.")
+                st.progress(probability)
 
-        default_input = (
-            "0.0, -1.2, 0.5, 2.1, -0.8, 1.1, 0.0, -0.3, 0.9, -1.0, "
-            "0.2, 0.0, 0.5, -0.4, 1.2, 0.0, -0.5, 0.8, 0.1, -0.2, "
-            "0.3, 0.0, -0.1, 0.4, 0.0, 0.0, -0.2, 0.1, 150.00, 0.0"
-        )
-        user_input = st.text_area(
-            "Enter 30 features (comma separated):", value=default_input
-        )
-
-        if st.button("Run Manual Prediction"):
-            try:
-                features = [float(value.strip()) for value in user_input.split(",")]
-
-                if len(features) != EXPECTED_FEATURES:
-                    st.warning(
-                        f"Expected {EXPECTED_FEATURES} features, but got "
-                        f"{len(features)}."
+                if probability > 0.5:
+                    st.error(
+                        "🚨 High Fraud Risk Detected"
                     )
                 else:
-                    with st.spinner("Calculating probability and explanations..."):
-                        response = requests.post(
-                            API_URL,
-                            json={"features": features},
-                            timeout=30,
-                        )
-                        response.raise_for_status()
-                        result = response.json()
+                    st.success(
+                        "✅ Transaction Appears Safe"
+                    )
 
-                    probability = float(result.get("fraud_probability", 0))
-                    st.divider()
-                    if result.get("is_fraud", False):
-                        st.error(
-                            f"🚨 FRAUD DETECTED "
-                            f"(Probability: {probability * 100:.2f}%)"
-                        )
-                    else:
-                        st.success(
-                            f"✅ SAFE (Probability: {probability * 100:.2f}%)"
-                        )
+    # ==========================================
+    # QUICK CHECK
+    # ==========================================
 
-                    st.write("### Key Factors Driving This Prediction")
-                    for reason in result.get("top_drivers", []):
-                        st.write(
-                            f"- **{reason.get('impact', 'Unknown')}** "
-                            f"(Feature: `{reason.get('feature', 'Unknown')}`)"
-                        )
+    with tab2:
 
-            except ValueError:
-                st.error("Invalid input. Use only numbers separated by commas.")
-            except requests.exceptions.ConnectionError:
+        st.subheader(
+            "Quick Transaction Simulator"
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            amount = st.number_input(
+                "Transaction Amount ($)",
+                min_value=0.0,
+                value=150.0
+            )
+
+        with col2:
+
+            time = st.slider(
+                "Transaction Time",
+                0,
+                172800,
+                10000
+            )
+
+        if st.button("Run Fraud Check"):
+
+            features = np.zeros(30)
+
+            # Adjust based on training order
+
+            features[0] = time
+            features[29] = amount
+
+            probability = model.predict_proba(
+                features.reshape(1, -1)
+            )[0][1]
+
+            st.divider()
+
+            st.subheader("Risk Score")
+
+            st.metric(
+                "Fraud Probability",
+                f"{probability * 100:.2f}%"
+            )
+
+            st.progress(probability)
+
+            if probability > 0.5:
+
                 st.error(
-                    "Could not connect to the API. Make sure FastAPI is running "
-                    "at http://localhost:8000."
+                    "🚨 HIGH RISK TRANSACTION"
                 )
-            except requests.exceptions.RequestException as error:
-                st.error(f"The prediction request failed: {error}")
-            except Exception as error:
-                st.error(f"An unexpected error occurred: {error}")
+
+            else:
+
+                st.success(
+                    "✅ LOW RISK TRANSACTION"
+                )
+
+# =====================================================
+# METRICS
+# =====================================================
+
+elif page == "Model Metrics":
+
+    st.title("📊 Model Performance")
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric("Accuracy", "99.9%")
+    col2.metric("Precision", "94%")
+    col3.metric("Recall", "91%")
+    col4.metric("ROC-AUC", "98%")
+
+    st.divider()
+
+    st.markdown("""
+    ### Business KPIs
+
+    - Fraud Detection Rate
+
+    - False Positive Rate
+
+    - Investigation Time
+
+    - Cost Savings
+
+    - Customer Trust Score
+    """)
+
+# =====================================================
+# ARCHITECTURE
+# =====================================================
+
+elif page == "Architecture":
+
+    st.title("🏗️ Solution Architecture")
+
+    st.image(
+        "assets/architecture.png",
+        use_container_width=True
+    )
+
+    st.info("""
+    Transaction Data
+
+            ↓
+
+    Feature Engineering
+
+            ↓
+
+    XGBoost Model
+
+            ↓
+
+    Fraud Probability
+
+            ↓
+
+    Decision Engine
+    """)
+
+# =====================================================
+# ROADMAP
+# =====================================================
+
+elif page == "Future Roadmap":
+
+    st.title("🗺️ Product Roadmap")
+
+    st.markdown("""
+    ### Phase 1
+    Fraud Detection Engine
+
+    ### Phase 2
+    Fraud Analyst Dashboard
+
+    ### Phase 3
+    Real-Time Streaming
+
+    ### Phase 4
+    Explainable AI Insights
+
+    ### Phase 5
+    LLM Fraud Copilot
+
+    ### Phase 6
+    Automated Case Management
+    """)
