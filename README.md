@@ -1,3 +1,21 @@
+Financial institutions lose billions annually due to fraudulent transactions.
+
+Traditional rule-based systems generate high false positives,
+leading to customer dissatisfaction and operational costs.
+
+Business Impact
+✔ Reduced fraud losses
+
+✔ Faster fraud investigation
+
+✔ Better customer experience
+
+✔ Lower false-positive rates
+
+Product Vision
+An AI-powered fraud detection platform that identifies suspicious
+transactions in real time and provides explainable predictions.
+
 # Credit Card Fraud Detection Pipeline
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
