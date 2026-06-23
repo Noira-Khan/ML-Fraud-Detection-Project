@@ -26,7 +26,6 @@ CreditCard.csv
 
 CreditCard.csv
 *.csv
-*.pkl
 *.npy
 __pycache__/
 .vscode/
