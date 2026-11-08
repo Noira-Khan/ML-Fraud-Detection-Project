@@ -9,7 +9,7 @@ SRC = Path(__file__).resolve().parent
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from components import score_bar, show_steps, stat_card  # noqa: E402
+from components import decision_sheet, page_header, score_bar, show_steps, stat_card  # noqa: E402
 from fraud_detection_pipeline.history import (  # noqa: E402
     append_records,
     clear_history,
@@ -34,15 +34,13 @@ from theme import load_theme  # noqa: E402
 st.set_page_config(page_title="Finance Shield", page_icon="🛡️", layout="wide")
 load_theme()
 
-SAFE_IMAGE = ROOT / "assets" / "fraud_Prediction_Safe.png"
-FRAUD_IMAGE = ROOT / "assets" / "Fraud_Prediction_Not_Safe.png"
 ARCH_IMAGE = ROOT / "assets" / "architecture.png"
 PAGES = [
-    "Past payments",
-    "Check one payment",
-    "Check a file",
+    "Payment queue",
+    "Single payment",
+    "Batch file",
     "Model record",
-    "How it fits together",
+    "Operating rules",
 ]
 
 
@@ -75,24 +73,22 @@ def remember(values: dict, result: dict) -> None:
     st.session_state.saved_fingerprint = fingerprint
 
 
-def show_result(result: dict, image_path: Path) -> None:
+def show_result(result: dict) -> None:
     decision = "Review" if result["decision"] == "review" else "Allow"
     left, right = st.columns(2)
     with left:
-        stat_card("Decision", decision, "A review flag does not decline the card.")
+        stat_card("Disposition", decision, "Review sends the case to an analyst. The card is not declined.")
     with right:
-        stat_card("Fraud score", f"{result['fraud_probability'] * 100:.2f}%", "Review starts at 95%.")
+        stat_card("Fraud score", f"{result['fraud_probability'] * 100:.2f}%", "Refer at 95% or above.")
     score_bar(result["fraud_probability"])
     if result["decision"] == "review":
-        st.error(result["summary"])
+        st.warning(result["summary"])
     else:
         st.success(result["summary"])
-    if image_path.exists():
-        st.image(str(image_path), width="stretch")
-    st.markdown("**Why the score moved**")
+    st.markdown("**Case notes**")
     for reason in result["reasons"]:
         st.write(f"- {reason}")
-    st.caption("This payment was saved under Past payments.")
+    st.caption("Filed on the payment queue.")
 
 
 def score_example(values: dict) -> None:
@@ -102,8 +98,7 @@ def score_example(values: dict) -> None:
         st.error(str(exc))
         return
     remember(values, result)
-    image = FRAUD_IMAGE if result["decision"] == "review" else SAFE_IMAGE
-    show_result(result, image)
+    show_result(result)
 
 
 def history_frame() -> pd.DataFrame:
@@ -115,32 +110,36 @@ def history_frame() -> pd.DataFrame:
 
 
 with st.sidebar:
-    st.markdown("### Finance Shield")
-    st.caption("Scores stay on this computer. This demo does not connect to a bank.")
-    page = st.radio("Go to", PAGES)
-
-if page == "Past payments":
     st.markdown(
         """
-        <div class="hero">
-            <h1>Past payments</h1>
-            <p>Every payment you score in this demo is listed here. The counts come only from that saved list.</p>
+        <div class="desk-mark">
+            <strong>FINANCE SHIELD</strong>
+            <span>Card risk desk</span>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    st.caption("Dispositions stay on this workstation. This desk does not decline a card.")
+    page = st.radio("Desk", PAGES)
+
+if page == "Payment queue":
+    page_header(
+        "Queue",
+        "Payment queue",
+        "Cases scored on this workstation. Counts come only from this list.",
+    )
     show_steps(
         [
-            "Score one payment, or score the included sample file.",
-            "Come back to this page. The newest payment is at the top.",
-            "Use the filter to see Allow, Review, or both. Review means a person should look. The card is not declined.",
+            "Score a single payment or a batch file.",
+            "Return here. The newest case is at the top.",
+            "Filter Allow or Review. Review means an analyst should look. The card is not declined.",
         ]
     )
     history = history_frame()
     totals = summarize(history)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        stat_card("Saved payments", f"{totals['rows']:,}", "Scored in this demo")
+        stat_card("Cases on file", f"{totals['rows']:,}", "Scored on this workstation")
     with c2:
         stat_card("Allow", f"{totals['allow']:,}", "Under the 95% cutoff")
     with c3:
@@ -149,7 +148,7 @@ if page == "Past payments":
         stat_card("Review cutoff", "95%", "Same cutoff as the holdout")
 
     if totals["rows"] == 0:
-        st.info("No payments have been scored on this computer yet. Open Check one payment and choose an example.")
+        st.info("The queue is empty. Open Single payment and score a case.")
     else:
         choice = st.radio("Show", ["All", "Allow", "Review"], horizontal=True)
         view = history.copy()
@@ -183,21 +182,17 @@ if page == "Past payments":
             st.session_state.logged_file_token = None
             st.rerun()
 
-elif page == "Check one payment":
-    st.markdown(
-        """
-        <div class="hero">
-            <h1>Check one payment</h1>
-            <p>Start from an example. Open the advanced fields only if you want to change the anonymous numbers.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
+elif page == "Single payment":
+    page_header(
+        "Authorisation",
+        "Single payment",
+        "Score one card payment. Start from a desk example, or open the model inputs if you need to change them.",
     )
     show_steps(
         [
             "Choose Everyday purchase or Suspicious pattern. You do not need to type V1 to V28.",
             "Change the amount only if you want to. Amount alone usually does not flip this model.",
-            "Read Allow or Review. The payment is saved under Past payments.",
+            "Read the disposition and the score on this page. The case is filed on the payment queue.",
         ]
     )
 
@@ -244,21 +239,17 @@ elif page == "Check one payment":
             values[name] = st.session_state[name]
         score_example(values)
 
-elif page == "Check a file":
-    st.markdown(
-        """
-        <div class="hero">
-            <h1>Check a file</h1>
-            <p>Score the included two-row sample, or upload a file with Time, V1 to V28, and Amount.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
+elif page == "Batch file":
+    page_header(
+        "Batch",
+        "Batch file",
+        "Score a file of card payments. Disposition and fraud score are shown on this page.",
     )
     show_steps(
         [
-            "Click the sample button, or upload a CSV with the thirty columns in the right order.",
-            "Read how many rows are Allow and how many are Review.",
-            "Download the scored file if you want a copy. The same rows are saved under Past payments.",
+            "Load the desk sample, or upload a CSV with Time, V1 to V28, and Amount.",
+            "Read each case in the decision sheet. Score and disposition are the first columns.",
+            "Download the full file if you need the model inputs as well. The same cases are filed on the queue.",
         ]
     )
     use_sample = st.button("Score the included sample")
@@ -301,29 +292,35 @@ elif page == "Check a file":
             allow_count = int((scored["decision"] == "allow").sum())
             a, b, c = st.columns(3)
             with a:
-                stat_card("Rows scored", f"{len(scored):,}", "From this file")
+                stat_card("Cases scored", f"{len(scored):,}", "From this file")
             with b:
                 stat_card("Allow", f"{allow_count:,}", "Under 95%")
             with c:
                 stat_card("Review", f"{review_count:,}", "At or above 95%")
-            st.dataframe(scored, width="stretch")
+            st.subheader("Decision sheet")
+            decision_sheet(scored)
+            referred = scored[scored["decision"] == "review"]
+            if referred.empty:
+                st.success("No case in this file reached the 95% review line.")
+            else:
+                st.warning(f"{len(referred):,} case(s) are for analyst review. The card is not declined.")
+            with st.expander("Model inputs for this file"):
+                st.caption("V1 to V28 are anonymous. They are not merchant or cardholder fields.")
+                st.dataframe(scored, width="stretch", hide_index=True)
+            export = scored.copy()
+            export.insert(0, "case", [f"FS-{number:04d}" for number in range(1, len(export) + 1)])
             st.download_button(
-                "Download scores",
-                scored.to_csv(index=False).encode("utf-8"),
+                "Download the decision file",
+                export.to_csv(index=False).encode("utf-8"),
                 file_name="finance_shield_scores.csv",
                 mime="text/csv",
             )
-            st.caption("Review means the score is at least 95%. Nothing in the file is declined.")
 
 elif page == "Model record":
-    st.markdown(
-        """
-        <div class="hero">
-            <h1>Model record</h1>
-            <p>These are the holdout numbers printed for the saved model. They are not the counts on Past payments.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    page_header(
+        "Control",
+        "Model record",
+        "Holdout figures for the model this desk uses. They are not the counts on the payment queue.",
     )
     show_steps(
         [
@@ -363,15 +360,11 @@ elif page == "Model record":
         "That number is not this holdout."
     )
 
-elif page == "How it fits together":
-    st.markdown(
-        """
-        <div class="hero">
-            <h1>How a score is produced</h1>
-            <p>One path, from the form or a file, through the saved model, to Allow or Review, then into the local list.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
+elif page == "Operating rules":
+    page_header(
+        "Rules",
+        "How a case is scored",
+        "One path: a payment or a file, the saved model, then Allow or Review on the queue.",
     )
     show_steps(
         [
@@ -379,7 +372,7 @@ elif page == "How it fits together":
             "The scorer keeps thirty columns in one order: Time, V1 through V28, then Amount.",
             "The saved model returns a fraud score between 0 and 1.",
             "A score of 95% or more is marked Review. Anything lower is marked Allow.",
-            "The decision is saved on this computer under Past payments. The card is not declined.",
+            "The disposition is filed on the payment queue. The card is not declined.",
         ]
     )
     if ARCH_IMAGE.exists():
@@ -387,6 +380,6 @@ elif page == "How it fits together":
     st.caption("The picture is the original pipeline sketch. The running demo stops at local scoring and the saved list.")
 
 st.markdown(
-    "<div class='footer'>Finance Shield local demo · Noira Khan · A review flag does not decline a card.</div>",
+    "<div class='footer'>Finance Shield · Card risk desk · A Review disposition does not decline the card.</div>",
     unsafe_allow_html=True,
 )
