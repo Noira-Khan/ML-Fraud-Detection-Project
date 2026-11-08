@@ -17,7 +17,7 @@ pip install -r requirements.txt
 streamlit run src/frontend.py
 ```
 
-Open **Check one payment** and choose **Everyday purchase** or **Suspicious pattern**.
+Open **Check one payment** and choose **Everyday purchase** or **Suspicious pattern**. Each score is saved on this computer under **Past payments**. That list starts empty.
 
 ## Run the API
 

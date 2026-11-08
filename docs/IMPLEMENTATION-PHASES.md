@@ -49,17 +49,17 @@ Done when a second machine with the CSV can reproduce the score file and the met
 
 ## Phase 3 — A review note a person can overturn
 
-**Status: not started. Still local. No new dataset.**
+**Status: the score list is in place. The override is not.**
 
-The product gap after Phase 1: the screen says Review, and then nothing records what the person did.
+Past payments reads `data/transaction_log.csv` on this computer. That file is gitignored. It records when a payment was scored, the source, the amount, the score, and Allow or Review. It starts empty. It does not contain a reviewer’s later choice.
 
-Work:
+Still to do:
 
-- A local log (a CSV or SQLite file, gitignored) with the score, the decision, the time, and a reviewer choice: agree, or allow anyway.
-- The card is still not declined by the software. “Allow anyway” is the override.
-- The model record page can later show how often reviewers disagreed. That count starts at zero until someone uses the log. It is not backfilled with a fake rate.
+- Let a person mark a Review row as “allow anyway” and store that choice in the same local file.
+- The card is still not declined by the software.
+- Do not invent a disagreement rate. The count stays at zero until someone records a choice.
 
-Done when a reviewer can open a Review row, choose allow anyway, and see that choice on a later visit to the same local file.
+Done when a reviewer can open a Review row, choose allow anyway, and see that choice on a later visit.
 
 ## Phase 4 — A feed that is not a CSV upload
 

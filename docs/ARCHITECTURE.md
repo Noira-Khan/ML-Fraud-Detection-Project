@@ -74,9 +74,9 @@ A short list of features is rejected. The order is the contract.
 
 | Page | Job |
 | --- | --- |
-| Start here | Says this is a local demo, and shows file counts from `eda_outputs/eda_summary_metrics.txt`. |
-| Check one payment | Two examples. Advanced V fields stay closed. |
-| Check a file | Included two-row sample, or an upload up to 5,000 rows. |
+| Past payments | Counts and rows saved on this computer after you score a payment or a file. Empty until then. |
+| Check one payment | Two examples. Advanced V fields stay closed. Each new score is appended to the local list. |
+| Check a file | Included two-row sample, or an upload up to 5,000 rows. Those rows are appended to the same list. |
 | Model record | Holdout precision, recall, and F1. Accuracy is explained, not celebrated. |
 | How it fits together | The five steps above, plus the original sketch. |
 
