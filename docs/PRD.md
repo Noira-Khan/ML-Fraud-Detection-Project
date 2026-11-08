@@ -26,9 +26,9 @@ For one payment, the product answers:
 
 | Score | What the screen says | What happens to the money |
 | --- | --- | --- |
-| 95% or more | Review | Nothing is declined. A person would confirm before a block. |
-| 50% to just under 95% | Allow, and say the model leans suspicious | The payment is not queued by the published cutoff. A person may still look. |
-| Under 50% | Allow | It would not be sent for review. |
+| 95% or more | Review, plus a preview of the customer alert | Nothing is declined. A person would confirm before a block. |
+| 50% to just under 95% | Allow, and say the model leans suspicious | No customer message. A person may still look. |
+| Under 50% | Allow | No customer message. It would not be sent for review. |
 
 95% is the cutoff that produced the holdout numbers below. It is a product choice already made in the training notebook, not a new invention for the screen.
 
@@ -68,10 +68,11 @@ Logistic regression on the same split reached about 0.92 recall and only about 0
 
 In:
 
-- A screen with two worked examples, so nobody has to type 28 anonymous numbers to see both decisions.
-- A two-row sample file, and a CSV upload capped at 5,000 rows.
-- The same score through `POST /predict`.
-- Plain language for Allow and Review.
+- A card risk desk with two worked examples, so nobody has to type 28 anonymous numbers to see both decisions.
+- An eight-row sample file. Each row has a short Meaning note. A CSV upload is capped at 5,000 rows. The score is visible on the batch page.
+- A local queue of cases scored on this computer.
+- At 95% or more, plain words for the banker and a preview of the phone alert and email the customer would get at that moment. Under 95%, no message. The preview is not sent.
+- The same score through `POST /predict`. The API does not send the customer message.
 - The model file in `models/fraud_xgb.json`, so the demo runs without the 284,807-row dataset.
 
 Out:

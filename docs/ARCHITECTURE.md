@@ -21,6 +21,7 @@ Screen or CSV or POST /predict
 fraud_detection_pipeline.scoring
   check the 30 columns
   order: Time, V1, V2, ... V28, Amount
+  a Meaning column, if present, is kept for the screen and is not scored
         |
         v
 models/fraud_xgb.json
@@ -30,11 +31,13 @@ models/fraud_xgb.json
 cutoff 0.95
         |
         +--> Allow
+        |      no customer message
+        |
         +--> Review
-                |
-                v
-        short reasons (V14, V4, V12, V17, V10)
-        payment is not declined
+               plain words for the banker
+               preview of a phone alert and an email
+               case filed on the local queue
+               payment is not declined
 ```
 
 The screen (`src/frontend.py`) and the API (`src/fraud_detection_pipeline/api.py`) both call `score_mapping` or `score_table`. They do not each contain a separate model.
@@ -72,13 +75,15 @@ A short list of features is rejected. The order is the contract.
 
 ## Screen
 
+The desk style is in [STYLE.md](STYLE.md): navy sidebar, quiet tiles, green for Allow, amber for Review, and no unmeasured money or latency figures.
+
 | Page | Job |
 | --- | --- |
-| Past payments | Counts and rows saved on this computer after you score a payment or a file. Empty until then. |
-| Check one payment | Two examples. Advanced V fields stay closed. Each new score is appended to the local list. |
-| Check a file | Included two-row sample, or an upload up to 5,000 rows. Those rows are appended to the same list. |
+| Payment queue | Counts and rows saved on this computer after a score. Empty until then. |
+| Single payment | Everyday purchase or Suspicious pattern. A Review score shows the customer message preview. |
+| Batch file | `samples/demo_transactions.csv` has eight rows and a Meaning note on each. An upload may have up to 5,000 rows. The decision sheet leads with case, disposition, score, amount, and the note. |
 | Model record | Holdout precision, recall, and F1. Accuracy is explained, not celebrated. |
-| How it fits together | The five steps above, plus the original sketch. |
+| Operating rules | The path from a row to Allow or Review, including when the customer message is prepared. |
 
 ## What the notebooks still are
 
@@ -99,8 +104,12 @@ The notebooks are the research trail. They are not the runtime.
 `tests/test_scoring.py` loads the real model and checks:
 
 - the everyday example is Allow and the suspicious example is Review
-- the sample file returns both decisions
+- the sample file includes a Meaning column, starts with Allow, and also contains Review
 - a missing column gets a plain error
 - `/health` and `/predict` agree with the scorer
+
+`tests/test_alerts.py` checks that only a Review score prepares a customer message, and that the message says the card has not been blocked.
+
+`tests/test_history.py` checks that a scored row can be saved and cleared in a local file.
 
 `tests/test_sample.py` still checks that the pipeline entrypoint prints a start line. That entrypoint does not score a payment.

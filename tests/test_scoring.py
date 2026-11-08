@@ -34,8 +34,14 @@ def test_feature_order_is_time_then_v_then_amount():
 
 
 def test_sample_file_scores_both_decisions():
-    scored = score_table(pd.read_csv(SAMPLE_PATH))
-    assert list(scored["decision"]) == ["allow", "review"]
+    raw = pd.read_csv(SAMPLE_PATH)
+    assert "Meaning" in raw.columns
+    assert len(raw) >= 6
+    scored = score_table(raw)
+    decisions = list(scored["decision"])
+    assert decisions[0] == "allow"
+    assert "review" in decisions
+    assert "allow" in decisions
 
 
 def test_missing_column_is_explained():

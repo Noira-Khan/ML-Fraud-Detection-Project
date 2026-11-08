@@ -1,3 +1,4 @@
+import importlib
 import sys
 from pathlib import Path
 
@@ -9,7 +10,17 @@ SRC = Path(__file__).resolve().parent
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from components import decision_sheet, page_header, score_bar, show_steps, stat_card  # noqa: E402
+import components as ui_components  # noqa: E402
+
+importlib.reload(ui_components)
+from components import (  # noqa: E402
+    customer_alert,
+    decision_sheet,
+    page_header,
+    score_bar,
+    show_steps,
+    stat_card,
+)
 from fraud_detection_pipeline.history import (  # noqa: E402
     append_records,
     clear_history,
@@ -73,7 +84,7 @@ def remember(values: dict, result: dict) -> None:
     st.session_state.saved_fingerprint = fingerprint
 
 
-def show_result(result: dict) -> None:
+def show_result(result: dict, amount: float) -> None:
     decision = "Review" if result["decision"] == "review" else "Allow"
     left, right = st.columns(2)
     with left:
@@ -81,10 +92,7 @@ def show_result(result: dict) -> None:
     with right:
         stat_card("Fraud score", f"{result['fraud_probability'] * 100:.2f}%", "Refer at 95% or above.")
     score_bar(result["fraud_probability"])
-    if result["decision"] == "review":
-        st.warning(result["summary"])
-    else:
-        st.success(result["summary"])
+    customer_alert(amount, result["decision"], result["fraud_probability"] * 100)
     st.markdown("**Case notes**")
     for reason in result["reasons"]:
         st.write(f"- {reason}")
@@ -98,7 +106,7 @@ def score_example(values: dict) -> None:
         st.error(str(exc))
         return
     remember(values, result)
-    show_result(result)
+    show_result(result, float(values["Amount"]))
 
 
 def history_frame() -> pd.DataFrame:
@@ -247,8 +255,8 @@ elif page == "Batch file":
     )
     show_steps(
         [
-            "Load the desk sample, or upload a CSV with Time, V1 to V28, and Amount.",
-            "Read each case in the decision sheet. Score and disposition are the first columns.",
+            "Load the desk sample. Each row has a short note on what that payment is meant to show.",
+            "Read the decision sheet on this page. Score, disposition, and the note come before the model inputs.",
             "Download the full file if you need the model inputs as well. The same cases are filed on the queue.",
         ]
     )
@@ -288,6 +296,8 @@ elif page == "Batch file":
                     ]
                 )
                 st.session_state.logged_file_token = token
+            if "Meaning" in table.columns:
+                scored.insert(0, "Meaning", table["Meaning"].astype(str).reset_index(drop=True).tolist())
             review_count = int((scored["decision"] == "review").sum())
             allow_count = int((scored["decision"] == "allow").sum())
             a, b, c = st.columns(3)
@@ -301,9 +311,14 @@ elif page == "Batch file":
             decision_sheet(scored)
             referred = scored[scored["decision"] == "review"]
             if referred.empty:
-                st.success("No case in this file reached the 95% review line.")
+                st.success("No case in this file reached 95%. No customer message is sent.")
             else:
-                st.warning(f"{len(referred):,} case(s) are for analyst review. The card is not declined.")
+                st.warning(
+                    f"{len(referred):,} case(s) reached 95%. "
+                    "Each one would send the customer a phone alert and an email at that moment."
+                )
+                first = referred.iloc[0]
+                customer_alert(float(first["Amount"]), "review", float(first["fraud_probability"]) * 100)
             with st.expander("Model inputs for this file"):
                 st.caption("V1 to V28 are anonymous. They are not merchant or cardholder fields.")
                 st.dataframe(scored, width="stretch", hide_index=True)
@@ -371,8 +386,8 @@ elif page == "Operating rules":
             "You pick an example or a file. The full public dataset is not required.",
             "The scorer keeps thirty columns in one order: Time, V1 through V28, then Amount.",
             "The saved model returns a fraud score between 0 and 1.",
-            "A score of 95% or more is marked Review. Anything lower is marked Allow.",
-            "The disposition is filed on the payment queue. The card is not declined.",
+            "A score of 95% or more is marked Review. At that moment the customer gets a phone alert and an email. Anything lower is Allow, and no message is sent.",
+            "The case is filed on the payment queue. The card is not blocked until a person decides.",
         ]
     )
     if ARCH_IMAGE.exists():

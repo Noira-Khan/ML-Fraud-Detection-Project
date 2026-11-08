@@ -40,11 +40,13 @@ def page_header(kicker: str, title: str, summary: str) -> None:
 def decision_sheet(scored, limit: int = 100) -> None:
     """Show disposition and score first. Model inputs stay out of this table."""
     shown = scored.head(limit)
+    has_meaning = "Meaning" in shown.columns
     body = []
     for case_number, (_, row) in enumerate(shown.iterrows(), start=1):
         referred = str(row["decision"]) == "review"
         label = "Review" if referred else "Allow"
         badge = "refer" if referred else "clear"
+        meaning = f"<td>{html.escape(str(row['Meaning']))}</td>" if has_meaning else ""
         body.append(
             "<tr>"
             f"<td>FS-{case_number:04d}</td>"
@@ -52,6 +54,7 @@ def decision_sheet(scored, limit: int = 100) -> None:
             f"<td>{float(row['fraud_probability']) * 100:.2f}%</td>"
             f"<td>{float(row['Amount']):,.2f}</td>"
             f"<td>{float(row['Time']):,.0f}</td>"
+            f"{meaning}"
             "</tr>"
         )
     extra = ""
@@ -68,6 +71,7 @@ def decision_sheet(scored, limit: int = 100) -> None:
                         <th>Fraud score</th>
                         <th>Amount</th>
                         <th>Seconds</th>
+                        {"<th>What it means</th>" if has_meaning else ""}
                     </tr>
                 </thead>
                 <tbody>
@@ -79,6 +83,47 @@ def decision_sheet(scored, limit: int = 100) -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+def customer_alert(amount: float, decision: str, score_percent: float) -> None:
+    from fraud_detection_pipeline.alerts import (
+        banker_explanation,
+        customer_message,
+        should_notify_customer,
+    )
+
+    st.markdown("**In plain words**")
+    st.write(banker_explanation(decision, score_percent))
+    if not should_notify_customer(decision):
+        return
+
+    message = customer_message(amount)
+    st.markdown("**What the customer gets at that moment**")
+    st.caption("Preview only. This screen does not send a real alert or a real email.")
+    left, right = st.columns(2)
+    with left:
+        st.markdown(
+            f"""
+            <div class="notice phone">
+                <div class="notice-kicker">Phone alert</div>
+                <strong>Finance Shield</strong>
+                <p>{html.escape(message["push"])}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with right:
+        st.markdown(
+            f"""
+            <div class="notice mail">
+                <div class="notice-kicker">Email</div>
+                <strong>{html.escape(message["subject"])}</strong>
+                <p>{html.escape(message["email"]).replace(chr(10), "<br>")}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    st.caption(message["when"] + " Nothing is sent when the score stays under 95%.")
 
 
 def score_bar(probability: float) -> None:

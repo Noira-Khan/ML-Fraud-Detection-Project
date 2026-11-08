@@ -106,6 +106,24 @@ def load_theme() -> None:
         .badge.clear { background: #e5f6ee; color: #0f6b45; }
         .badge.refer { background: #fff4df; color: #8a5a00; }
         .sheet-note { color: #5c6b7a; font-size: 13px; }
+        .notice {
+            background: white;
+            border: 1px solid #d9e0e8;
+            padding: 14px 16px;
+            min-height: 180px;
+            margin-bottom: 8px;
+        }
+        .notice.phone { border-top: 4px solid #0b1f33; }
+        .notice.mail { border-top: 4px solid #8a5a00; }
+        .notice-kicker {
+            color: #5c6b7a;
+            font-size: 12px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .notice p { margin: 8px 0 0; color: #1c2834; line-height: 1.45; }
         </style>
         """,
         unsafe_allow_html=True,

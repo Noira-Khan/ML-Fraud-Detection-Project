@@ -20,10 +20,14 @@ Work:
 - One scorer for the screen and the API.
 - Column order fixed to `Time`, `V1`–`V28`, `Amount`, unscaled.
 - Decision cutoff set to 95%, the cutoff behind the 0.93 / 0.82 / 0.87 holdout.
-- Two examples and `samples/demo_transactions.csv`, so the Kaggle file is not required.
+- Two single-payment examples and `samples/demo_transactions.csv`. That file has eight rows. A Meaning column says, in short, what each row is there to show. The model does not score that column.
+- The screen is a card risk desk. The rules for that look are in `docs/STYLE.md`.
+- A batch decision sheet shows disposition and fraud score on the same page. V1–V28 stay in a closed section.
+- At 95% or more, the banker gets a plain sentence and a preview of the phone alert and email the customer would get at that moment. Under 95%, no message is prepared. The preview is not a sent email.
 - Removed the screen figures that were not measured (a live transaction count, a dollar saving, a 41 ms latency, a 0.98 ROC-AUC).
 - Reasons written from the features this model weights, in words a reviewer can read.
 - Upload capped at 5,000 rows, with a clear error when a column or a cell is bad.
+- Scored cases are appended to `data/transaction_log.csv` on this computer. That file is gitignored and starts empty.
 
 Done when:
 
@@ -51,7 +55,7 @@ Done when a second machine with the CSV can reproduce the score file and the met
 
 **Status: the score list is in place. The override is not.**
 
-Past payments reads `data/transaction_log.csv` on this computer. That file is gitignored. It records when a payment was scored, the source, the amount, the score, and Allow or Review. It starts empty. It does not contain a reviewer’s later choice.
+The payment queue reads `data/transaction_log.csv` on this computer. That file is gitignored. It records when a payment was scored, the source, the amount, the score, and Allow or Review. It starts empty. The customer alert on a Review case is a preview of the message, not a record that an email was sent. The log does not contain a reviewer’s later choice.
 
 Still to do:
 
