@@ -1,153 +1,45 @@
-Financial institutions lose billions annually due to fraudulent transactions.
+# Finance Shield
 
-Traditional rule-based systems generate high false positives,
-leading to customer dissatisfaction and operational costs.
+A local demo that scores one card payment and says **Allow** or **Review**.
 
-Business Impact
-✔ Reduced fraud losses
+A review flag does not decline the card. The original public dataset is not required to run the demo. The saved model is already in `models/fraud_xgb.json`.
 
-✔ Faster fraud investigation
+The model only sees `Time`, `V1`–`V28`, and `Amount`. Those V columns are anonymous. It cannot see a merchant, a country, or a cardholder.
 
-✔ Better customer experience
+## What a score means
 
-✔ Lower false-positive rates
+On the holdout in `notebooks/train_model_LR.ipynb`, a **95%** cutoff gave about **0.93 fraud precision**, **0.82 fraud recall**, and **0.87 fraud F1** (98 fraud cases in the test split). Accuracy on that file is about 99.8% even for a model that never catches fraud, so the screen does not lead with accuracy.
 
-Product Vision
-An AI-powered fraud detection platform that identifies suspicious
-transactions in real time and provides explainable predictions.
-
-# Credit Card Fraud Detection Pipeline
-
-![Python](https://img.shields.io/badge/Python-3.12-blue)
-![Scikit-Learn](https://img.shields.io/badge/ScikitLearn-ML-orange)
-![XGBoost](https://img.shields.io/badge/XGBoost-Model-green)
-![Streamlit](https://img.shields.io/badge/Streamlit-UI-red)
-
----
-
-## Overview
-
-An end-to-end Machine Learning pipeline for detecting fraudulent credit card transactions.
-
-The project covers:
-
-- Data Loading
-- Exploratory Data Analysis
-- Data Preprocessing
-- Feature Engineering
-- Class Imbalance Handling
-- Model Training
-- Hyperparameter Tuning
-- Streamlit User Interface
-- Fraud Prediction
-
----
-# Credit Card Fraud Detection
-
-## Architecture
-
-![Architecture](assets/architecture.png)
-
-## Home Screen
-
-![Home](assets/UI_Home.png)
-
-## Prediction Result - Safe Transaction
-
-![Safe Result](assets/fraud_Prediction_Safe.png)
-
-## Prediction Result - Fraud Transaction
-
-![Fraud Result](assets/Fraud_Prediction_Not_Safe.png)
-
-----
-
-
-## Technology Stack
-
-| Category | Technology |
-|-----------|------------|
-| Language | Python |
-| Data Processing | Pandas, NumPy |
-| Visualization | Matplotlib, Seaborn |
-| Machine Learning | Scikit-Learn |
-| Advanced Model | XGBoost |
-| UI | Streamlit |
-| Version Control | Git & GitHub |
-
----
-
-## Project Structure
-
-```text
-ML-Fraud-Detection-Project/
-│
-├── notebooks/
-├── src/
-├── tests/
-├── assets/
-├── README.md
-├── requirements.txt
-└── pyproject.toml
-```
-
----
-
-## Machine Learning Workflow
-
-1. Load Dataset
-2. Exploratory Data Analysis
-3. Data Cleaning
-4. Feature Engineering
-5. Train/Test Split
-6. Model Training
-7. Hyperparameter Tuning
-8. Model Evaluation
-9. Deployment via Streamlit
-
----
-
-## Model Performance
-
-| Metric | Score |
-|---------|---------|
-| Accuracy | 99.98% |
-| Precision (Fraud) | 93% |
-| Recall (Fraud) | 82% |
-| F1 Score (Fraud) | 87% |
-
----
-
-## Installation
+## Run the screen
 
 ```bash
-git clone https://github.com/Noira-Khan/ML-Fraud-Detection-Project.git
-
-cd ML-Fraud-Detection-Project
-
 pip install -r requirements.txt
-```
-
----
-
-## Run Application
-
-```bash
 streamlit run src/frontend.py
 ```
 
----
+Open **Check one payment** and choose **Everyday purchase** or **Suspicious pattern**.
 
-## Future Enhancements
+## Run the API
 
-- FastAPI Integration
-- Docker Deployment
-- CI/CD Pipeline
-- AWS Deployment
-- Real-Time Fraud Scoring
+```bash
+uvicorn app:app --app-dir src
+```
 
----
+`GET /health`  
+`POST /predict` with 30 numbers in this order: `Time`, `V1` … `V28`, `Amount`.
 
-## Author
+## Documents
 
-Noira Khan
+- [Product requirements](docs/PRD.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Implementation by phases](docs/IMPLEMENTATION-PHASES.md)
+
+## Tests
+
+```bash
+pytest
+```
+
+## What is not in this repository
+
+`CreditCard.csv` and the `.npy` training arrays stay on your machine. Retraining is optional. `python src/train.py` explains that and does not pretend the dataset is present.

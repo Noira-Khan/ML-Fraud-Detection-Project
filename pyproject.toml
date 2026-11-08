@@ -4,23 +4,25 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fraud-detection-pipeline"
-version = "0.1.0"
-description = "A fraud detection pipeline project scaffold."
-authors = [ { name = "Your Name" } ]
+version = "0.2.0"
+description = "Local credit-card fraud scoring demo. A high score is sent to a person. It does not decline a payment."
+authors = [ { name = "Noira Khan" } ]
 readme = "README.md"
 requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
-
 dependencies = [
-    "python-dateutil>=2.8"
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "xgboost",
+    "joblib",
+    "fastapi",
+    "pydantic",
+    "httpx",
 ]
-
-[project.urls]
-Homepage = "https://example.com"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

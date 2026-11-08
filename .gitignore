@@ -20,12 +20,10 @@ dist/
 # Logs
 *.log
 
+# The public credit-card file and local training arrays stay on your machine.
 CreditCard.csv
-
-
-
-CreditCard.csv
-*.csv
 *.npy
-__pycache__/
-.vscode/
+
+# Other CSV files stay local, except the two-row demo.
+*.csv
+!samples/demo_transactions.csv
